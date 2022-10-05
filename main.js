@@ -40,7 +40,7 @@
         return list
     }
 
-    function createTodoItem(name, done = false) {
+    function createTodoItem(name, onDoneChanged, onDelete, done = false) {
         let item = document.createElement('li')
 
         let buttonGroup = document.createElement('div')
@@ -64,12 +64,10 @@
         item.append(buttonGroup)
 
         doneButton.addEventListener('click', function () {
-            item.classList.toggle('list-group-item-success')
+            onDoneChanged(item)
         });
         deleteButton.addEventListener('click', function () {
-            if (confirm('Вы уверены?')) {
-                item.remove()
-            }
+            onDelete(item)
         })
 
         return {
@@ -79,13 +77,34 @@
         }
     }
 
-    function createTodoApp(container, title="Список дел", todos=[]) {
+    function createTodoApp(container, title="Список дел", listId) {
+        function onDoneChanged(item) {
+            let itemIndex = [...todoList.children].indexOf(item)
+            todoLocalStorage.swapDoneStatus(listId, itemIndex)
+            item.classList.toggle('list-group-item-success')
+        }
+
+        function onDeleteItem(item) {
+            let itemIndex = [...todoList.children].indexOf(item)
+            todoLocalStorage.remove(listId, itemIndex)
+            if (confirm('Вы уверены?')) {
+                item.remove()
+            }
+        }
+
         let todoAppTitle = createAppTitle(title)
         let todoItemForm = createTodoItemForm()
         let todoList = createTodoList()
 
-        for (let todo of todos) {
-            todoList.append(createTodoItem(todo['name'], todo['done']).item)
+        let defaultTodos = todoLocalStorage.getAll(listId)
+        if (defaultTodos == null) {
+            defaultTodos = []
+        }
+        for (let todo of defaultTodos) {
+            let name = todo['name']
+            let done = todo['done']
+            let item = createTodoItem(name, onDoneChanged, onDeleteItem, done).item
+            todoList.append(item)
         }
 
         container.append(todoAppTitle)
@@ -103,14 +122,14 @@
                 return;
             }
 
-            let todoItem = createTodoItem(todoItemForm.input.value);
+            let taskName = todoItemForm.input.value
+            let todoItem = createTodoItem(taskName, onDoneChanged, onDeleteItem);
+            todoLocalStorage.add(listId, taskName)
             //  создаём и добавляем в список новое дело с названием из поля для ввода
             todoList.append(todoItem.item);
             // обнуляем значение в поле, чтобы не пришлось стирать его вручную
             todoItemForm.input.value = '';
         });
-        todoList.append(todoItems[0].item)
-        todoList.append(todoItems[1].item)
     }
 
     window.createTodoApp = createTodoApp
