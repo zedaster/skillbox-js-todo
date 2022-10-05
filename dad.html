@@ -9,7 +9,8 @@
     <script defer src="main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            createTodoApp(document.getElementById('todo-app'), 'Дела папы')
+            let todos = [{name: 'Посмотреть Брат 1', done: true}, {name: 'Посмотреть Брат 2', done: false}]
+            createTodoApp(document.getElementById('todo-app'), 'Дела папы', todos)
         })
     </script>
 </head>

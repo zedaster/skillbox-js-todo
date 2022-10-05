@@ -17,6 +17,11 @@
         buttonWrapper.classList.add('input-group-append')
         button.classList.add('btn', 'btn-primary')
         button.textContent = "Добавить дело"
+        button.disabled = true
+
+        input.addEventListener('input', function () {
+            button.disabled = (input.value === '')
+        })
 
         buttonWrapper.append(button)
         form.append(input)
@@ -35,7 +40,7 @@
         return list
     }
 
-    function createTodoItem(name) {
+    function createTodoItem(name, done = false) {
         let item = document.createElement('li')
 
         let buttonGroup = document.createElement('div')
@@ -43,6 +48,9 @@
         let deleteButton = document.createElement('button')
 
         item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center')
+        if (done) {
+            item.classList.add('list-group-item-success')
+        }
         item.textContent = name;
 
         buttonGroup.classList.add('btn-group', 'btn-group-sm');
@@ -55,6 +63,15 @@
         buttonGroup.append(deleteButton);
         item.append(buttonGroup)
 
+        doneButton.addEventListener('click', function () {
+            item.classList.toggle('list-group-item-success')
+        });
+        deleteButton.addEventListener('click', function () {
+            if (confirm('Вы уверены?')) {
+                item.remove()
+            }
+        })
+
         return {
             item,
             doneButton,
@@ -62,11 +79,14 @@
         }
     }
 
-    function createTodoApp(container, title="Список дел") {
+    function createTodoApp(container, title="Список дел", todos=[]) {
         let todoAppTitle = createAppTitle(title)
         let todoItemForm = createTodoItemForm()
         let todoList = createTodoList()
-        let todoItems = []
+
+        for (let todo of todos) {
+            todoList.append(createTodoItem(todo['name'], todo['done']).item)
+        }
 
         container.append(todoAppTitle)
         container.append(todoItemForm.form)
@@ -84,15 +104,6 @@
             }
 
             let todoItem = createTodoItem(todoItemForm.input.value);
-            todoItem.doneButton.addEventListener('click', function () {
-                todoItem.item.classList.toggle('list-group-item-success')
-            });
-            todoItem.deleteButton.addEventListener('click', function () {
-                if (confirm('Вы уверены?')) {
-                    todoItem.item.remove()
-                }
-            })
-
             //  создаём и добавляем в список новое дело с названием из поля для ввода
             todoList.append(todoItem.item);
             // обнуляем значение в поле, чтобы не пришлось стирать его вручную
